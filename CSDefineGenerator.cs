@@ -23,27 +23,27 @@ namespace excel2json
 
         public string code {
             get {
-                return this.mCode;
+                return mCode;
             }
         }
 
         public CSDefineGenerator(string excelName, ExcelLoader excel, string excludePrefix)
         {
             //-- 创建代码字符串
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine("//");
             sb.AppendLine("// Auto Generated Code By excel2json");
             sb.AppendLine("// https://neil3d.gitee.io/coding/excel2json.html");
             sb.AppendLine("// 1. 每个 Sheet 形成一个 Struct 定义, Sheet 的名称作为 Struct 的名称");
             sb.AppendLine("// 2. 表格约定：第一行是变量名称，第二行是变量类型");
             sb.AppendLine();
-            sb.AppendFormat("// Generate From {0}.xlsx", excelName);
+            sb.AppendLine($"// Generate From {excelName}.xlsx");
             sb.AppendLine();
             sb.AppendLine();
 
             for (int i = 0; i < excel.Sheets.Count; i++)
             {
-                DataTable sheet = excel.Sheets[i];
+                var sheet = excel.Sheets[i];
                 sb.Append(_exportSheet(sheet, excludePrefix));
             }
 
@@ -58,19 +58,19 @@ namespace excel2json
             if (sheet.Columns.Count < 0 || sheet.Rows.Count < 2)
                 return "";
 
-            string sheetName = sheet.TableName;
+            var sheetName = sheet.TableName;
             if (excludePrefix.Length > 0 && sheetName.StartsWith(excludePrefix))
                 return "";
 
             // get field list
-            List<FieldDef> fieldList = new List<FieldDef>();
-            DataRow typeRow = sheet.Rows[0];
-            DataRow commentRow = sheet.Rows[1];
+            var fieldList = new List<FieldDef>();
+            var typeRow = sheet.Rows[0];
+            var commentRow = sheet.Rows[1];
 
             foreach (DataColumn column in sheet.Columns)
             {
                 // 过滤掉包含指定前缀的列
-                string columnName = column.ToString();
+                var columnName = column.ToString();
                 if (excludePrefix.Length > 0 && columnName.StartsWith(excludePrefix))
                     continue;
 
@@ -83,14 +83,16 @@ namespace excel2json
             }
 
             // export as string
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("public class {0}\r\n{{", sheet.TableName);
+            var sb = new StringBuilder();
+            sb.AppendLine($"public class {sheet.TableName}\r\n{{");
             sb.AppendLine();
 
-            foreach (FieldDef field in fieldList)
+            foreach (var field in fieldList)
             {
-                sb.AppendFormat("\tpublic {0} {1}; // {2}", field.type, field.name, field.comment);
-                sb.AppendLine();
+                sb.AppendLine("\t/// <summary>");
+                sb.AppendLine($"\t/// {field.comment}");
+                sb.AppendLine("\t/// </summary>");
+                sb.AppendLine($"\tpublic {field.type} {field.name};");
             }
 
             sb.Append('}');
@@ -102,11 +104,9 @@ namespace excel2json
         public void SaveToFile(string filePath, Encoding encoding)
         {
             //-- 保存文件
-            using (FileStream file = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-            {
-                using (TextWriter writer = new StreamWriter(file, encoding))
-                    writer.Write(mCode);
-            }
+            using var file = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+            using var writer = new StreamWriter(file, encoding);
+            writer.Write(mCode);
         }
     }
 }

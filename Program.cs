@@ -3,6 +3,7 @@ using System.IO;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using CommandLine;
 
 
 namespace excel2json
@@ -32,30 +33,56 @@ namespace excel2json
                 //-- COMMAND LINE MODE -------------------------------------------------
 
                 //-- 分析命令行参数
-                var options = new Options();
-                var parser = new CommandLine.Parser(with => with.HelpWriter = Console.Error);
+                // var options = new Options();
+                // var parser = new CommandLine.Parser(with => with.HelpWriter = Console.Error);
 
-                if (parser.ParseArgumentsStrict(args, options, () => Environment.Exit(-1)))
-                {
-                    //-- 执行导出操作
-                    try
+                // if (parser.ParseArgumentsStrict(args, options, () => Environment.Exit(-1)))
+                // {
+                //     //-- 执行导出操作
+                //     try
+                //     {
+                //         DateTime startTime = DateTime.Now;
+                //         Run(options);
+                //         //-- 程序计时
+                //         DateTime endTime = DateTime.Now;
+                //         TimeSpan dur = endTime - startTime;
+                //         Console.WriteLine(
+                //             string.Format("[{0}]：\tConversion complete in [{1}ms].",
+                //             Path.GetFileName(options.ExcelPath),
+                //             dur.TotalMilliseconds)
+                //             );
+                //     }
+                //     catch (Exception exp)
+                //     {
+                //         Console.WriteLine("Error: " + exp.Message);
+                //     }
+                // }
+                var parser = new Parser(with => with.HelpWriter = Console.Error);
+
+                parser.ParseArguments<Options>(args)
+                    .WithParsed(options =>
                     {
-                        DateTime startTime = DateTime.Now;
-                        Run(options);
-                        //-- 程序计时
-                        DateTime endTime = DateTime.Now;
-                        TimeSpan dur = endTime - startTime;
-                        Console.WriteLine(
-                            string.Format("[{0}]：\tConversion complete in [{1}ms].",
-                            Path.GetFileName(options.ExcelPath),
-                            dur.TotalMilliseconds)
-                            );
-                    }
-                    catch (Exception exp)
+                        //-- 执行导出操作
+                        try
+                        {
+                            var startTime = DateTime.Now;
+                            Run(options);
+                            //-- 程序计时
+                            var endTime = DateTime.Now;
+                            var dur = endTime - startTime;
+                            Console.WriteLine($"[{Path.GetFileName(options.ExcelPath)}]：\tConversion complete in [{dur.TotalMilliseconds}ms].");
+                        }
+                        catch (Exception exp)
+                        {
+                            Console.WriteLine($"Error: {exp.Message}");
+                        }
+                    })
+                    .WithNotParsed(errors =>
                     {
-                        Console.WriteLine("Error: " + exp.Message);
-                    }
-                }
+                        // 处理解析错误
+                        Environment.Exit(-1);
+                    });
+
             }// end of else
         }
 

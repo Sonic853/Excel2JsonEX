@@ -38,55 +38,55 @@ namespace excel2json
                 set;
             }
 
-            [Option('h', "header", Required = false, DefaultValue = 1, HelpText = "number lines in sheet as header.")]
+            [Option('h', "header", Required = false, Default = 1, HelpText = "number lines in sheet as header.")]
             public int HeaderRows {
                 get;
                 set;
             }
 
-            [Option('c', "encoding", Required = false, DefaultValue = "utf8-nobom", HelpText = "export file encoding.")]
+            [Option('c', "encoding", Required = false, Default = "utf8-nobom", HelpText = "export file encoding.")]
             public string Encoding {
                 get;
                 set;
             }
 
-            [Option('l', "lowcase", Required = false, DefaultValue = false, HelpText = "convert filed name to lowcase.")]
+            [Option('l', "lowcase", Required = false, Default = false, HelpText = "convert filed name to lowcase.")]
             public bool Lowcase {
                 get;
                 set;
             }
 
-            [Option('a', "array", Required = false, DefaultValue = false, HelpText = "export as array, otherwise as dict object.")]
+            [Option('a', "array", Required = false, Default = false, HelpText = "export as array, otherwise as dict object.")]
             public bool ExportArray {
                 get;
                 set;
             }
 
-            [Option('d', "date", Required = false, DefaultValue = "yyyy/MM/dd", HelpText = "Date Format String, example: dd / MM / yyy hh: mm:ss.")]
+            [Option('d', "date", Required = false, Default = "yyyy/MM/dd", HelpText = "Date Format String, example: dd / MM / yyy hh: mm:ss.")]
             public string DateFormat {
                 get;
                 set;
             }
 
-            [Option('s', "sheet", Required = false, DefaultValue = false, HelpText = "export with sheet name, even there's only one sheet.")]
+            [Option('s', "sheet", Required = false, Default = false, HelpText = "export with sheet name, even there's only one sheet.")]
             public bool ForceSheetName {
                 get;
                 set;
             }
 
-            [Option('x', "exclude_prefix", Required = false, DefaultValue = "", HelpText = "exclude sheet or column start with specified prefix.")]
+            [Option('x', "exclude_prefix", Required = false, Default = "", HelpText = "exclude sheet or column start with specified prefix.")]
             public string ExcludePrefix {
                 get;
                 set;
             }
 
-            [Option('l', "cell_json", Required = false, DefaultValue = false, HelpText = "convert json string in cell")]
+            [Option('j', "cell_json", Required = false, Default = false, HelpText = "convert json string in cell")]
             public bool CellJson {
                 get;
                 set;
             }
 
-            [Option('l', "all_string", Required = false, DefaultValue = false, HelpText = "all string")]
+            [Option('r', "all_string", Required = false, Default = false, HelpText = "all string")]
             public bool AllString
             {
                 get;

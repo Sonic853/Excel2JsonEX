@@ -33,30 +33,6 @@ namespace excel2json
                 //-- COMMAND LINE MODE -------------------------------------------------
 
                 //-- 分析命令行参数
-                // var options = new Options();
-                // var parser = new CommandLine.Parser(with => with.HelpWriter = Console.Error);
-
-                // if (parser.ParseArgumentsStrict(args, options, () => Environment.Exit(-1)))
-                // {
-                //     //-- 执行导出操作
-                //     try
-                //     {
-                //         DateTime startTime = DateTime.Now;
-                //         Run(options);
-                //         //-- 程序计时
-                //         DateTime endTime = DateTime.Now;
-                //         TimeSpan dur = endTime - startTime;
-                //         Console.WriteLine(
-                //             string.Format("[{0}]：\tConversion complete in [{1}ms].",
-                //             Path.GetFileName(options.ExcelPath),
-                //             dur.TotalMilliseconds)
-                //             );
-                //     }
-                //     catch (Exception exp)
-                //     {
-                //         Console.WriteLine("Error: " + exp.Message);
-                //     }
-                // }
                 var parser = new Parser(with => with.HelpWriter = Console.Error);
 
                 parser.ParseArguments<Options>(args)
@@ -94,19 +70,19 @@ namespace excel2json
         {
 
             //-- Excel File 
-            string excelPath = options.ExcelPath;
-            string excelName = Path.GetFileNameWithoutExtension(options.ExcelPath);
+            var excelPath = options.ExcelPath;
+            var excelName = Path.GetFileNameWithoutExtension(options.ExcelPath);
 
             //-- Header
-            int header = options.HeaderRows;
+            var header = options.HeaderRows;
 
             //-- Encoding
             Encoding cd = new UTF8Encoding(false);
             if (options.Encoding != "utf8-nobom")
             {
-                foreach (EncodingInfo ei in Encoding.GetEncodings())
+                foreach (var ei in Encoding.GetEncodings())
                 {
-                    Encoding e = ei.GetEncoding();
+                    var e = ei.GetEncoding();
                     if (e.HeaderName == options.Encoding)
                     {
                         cd = e;
@@ -116,7 +92,7 @@ namespace excel2json
             }
 
             //-- Date Format
-            string dateFormat = options.DateFormat;
+            var dateFormat = options.DateFormat;
 
             //-- Export path
             string exportPath;
@@ -130,16 +106,16 @@ namespace excel2json
             }
 
             //-- Load Excel
-            ExcelLoader excel = new ExcelLoader(excelPath, header);
+            var excel = new ExcelLoader(excelPath, header);
 
             //-- export
-            JsonExporter exporter = new JsonExporter(excel, options.Lowcase, options.ExportArray, dateFormat, options.ForceSheetName, header, options.ExcludePrefix, options.CellJson, options.AllString);
+            var exporter = new JsonExporter(excel, options.Lowcase, options.ExportArray, dateFormat, options.ForceSheetName, header, options.ExcludePrefix, options.CellJson, options.AllString);
             exporter.SaveToFile(exportPath, cd);
 
             //-- 生成C#定义文件
             if (options.CSharpPath != null && options.CSharpPath.Length > 0)
             {
-                CSDefineGenerator generator = new CSDefineGenerator(excelName, excel, options.ExcludePrefix);
+                var generator = new CSDefineGenerator(excelName, excel, options.ExcludePrefix);
                 generator.SaveToFile(options.CSharpPath, cd);
             }
         }

@@ -24,15 +24,15 @@ namespace excel2json.GUI
 
 
         // 文本框的样式
-        private TextStyle mBrownStyle = new TextStyle(Brushes.Brown, null, FontStyle.Regular);
-        private TextStyle mMagentaStyle = new TextStyle(Brushes.Magenta, null, FontStyle.Regular);
-        private TextStyle mGreenStyle = new TextStyle(Brushes.Green, null, FontStyle.Regular);
+        private TextStyle mBrownStyle = new(Brushes.Brown, null, FontStyle.Regular);
+        private TextStyle mMagentaStyle = new(Brushes.Magenta, null, FontStyle.Regular);
+        private TextStyle mGreenStyle = new(Brushes.Green, null, FontStyle.Regular);
 
         // 导出数据相关的按钮，方便整体Enable/Disable
         private List<ToolStripButton> mExportButtonList;
 
         // 打开的excel文件名，不包含后缀xlsx。。。
-        private String FileName;
+        private string FileName;
 
         /// <summary>
         /// 构造函数，初始化控件初值；创建文本框
@@ -42,40 +42,42 @@ namespace excel2json.GUI
             InitializeComponent();
 
             //-- syntax highlight text box
-            mJsonTextBox = createTextBoxInTab(this.tabPageJSON);
+            mJsonTextBox = createTextBoxInTab(tabPageJSON);
             mJsonTextBox.Language = Language.Custom;
-            mJsonTextBox.TextChanged += new EventHandler<TextChangedEventArgs>(this.jsonTextChanged);
+            mJsonTextBox.TextChanged += new EventHandler<TextChangedEventArgs>(jsonTextChanged);
 
-            mCSharpTextBox = createTextBoxInTab(this.tabCSharp);
+            mCSharpTextBox = createTextBoxInTab(tabCSharp);
             mCSharpTextBox.Language = Language.CSharp;
 
             //-- componet init states
-            this.comboBoxType.SelectedIndex = 0;
-            this.comboBoxLowcase.SelectedIndex = 1;
-            this.comboBoxHeader.SelectedIndex = 1;
-            this.comboBoxDateFormat.SelectedIndex = 0;
-            this.comboBoxSheetName.SelectedIndex = 1;
+            comboBoxType.SelectedIndex = 0;
+            comboBoxLowcase.SelectedIndex = 1;
+            comboBoxHeader.SelectedIndex = 1;
+            comboBoxDateFormat.SelectedIndex = 0;
+            comboBoxSheetName.SelectedIndex = 1;
 
-            this.comboBoxEncoding.Items.Clear();
-            this.comboBoxEncoding.Items.Add("utf8-nobom");
-            foreach (EncodingInfo ei in Encoding.GetEncodings())
+            comboBoxEncoding.Items.Clear();
+            comboBoxEncoding.Items.Add("utf8-nobom");
+            foreach (var ei in Encoding.GetEncodings())
             {
-                Encoding e = ei.GetEncoding();
-                this.comboBoxEncoding.Items.Add(e.HeaderName);
+                var e = ei.GetEncoding();
+                comboBoxEncoding.Items.Add(e.HeaderName);
             }
-            this.comboBoxEncoding.SelectedIndex = 0;
+            comboBoxEncoding.SelectedIndex = 0;
 
             //-- button list
-            mExportButtonList = new List<ToolStripButton>();
-            mExportButtonList.Add(this.btnCopyJSON);
-            mExportButtonList.Add(this.btnSaveJson);
-            mExportButtonList.Add(this.btnCopyCSharp);
-            mExportButtonList.Add(this.btnSaveCSharp);
+            mExportButtonList =
+            [
+                btnCopyJSON,
+                btnSaveJson,
+                btnCopyCSharp,
+                btnSaveCSharp,
+            ];
             enableExportButtons(false);
 
             //-- data manager
-            mDataMgr = new DataManager();
-            this.btnReimport.Enabled = false;
+            mDataMgr = new();
+            btnReimport.Enabled = false;
         }
 
         /// <summary>
@@ -95,9 +97,11 @@ namespace excel2json.GUI
         /// <returns>新建的Text Box控件</returns>
         private FastColoredTextBox createTextBoxInTab(TabPage tab)
         {
-            FastColoredTextBox textBox = new FastColoredTextBox();
-            textBox.Dock = DockStyle.Fill;
-            textBox.Font = new Font("Microsoft YaHei", 11F);
+            var textBox = new FastColoredTextBox()
+            {
+                Dock = DockStyle.Fill,
+                Font = new("Microsoft YaHei", 11F)
+            };
             tab.Controls.Add(textBox);
             return textBox;
         }
@@ -127,28 +131,30 @@ namespace excel2json.GUI
             FileName = System.IO.Path.GetFileNameWithoutExtension(path);
 
             //-- update ui
-            this.btnReimport.Enabled = true;
-            this.labelExcelFile.Text = path;
+            btnReimport.Enabled = true;
+            labelExcelFile.Text = path;
             enableExportButtons(false);
 
-            this.statusLabel.IsLink = false;
-            this.statusLabel.Text = "Loading Excel ...";
+            statusLabel.IsLink = false;
+            statusLabel.Text = "Loading Excel ...";
 
             //-- load options from ui
-            Program.Options options = new Program.Options();
-            options.ExcelPath = path;
-            options.ExportArray = this.comboBoxType.SelectedIndex == 0;
-            options.Encoding = this.comboBoxEncoding.SelectedText;
-            options.Lowcase = this.comboBoxLowcase.SelectedIndex == 0;
-            options.HeaderRows = int.Parse(this.comboBoxHeader.Text);
-            options.DateFormat = this.comboBoxDateFormat.Text;
-            options.ForceSheetName = this.comboBoxSheetName.SelectedIndex == 0;
-            options.ExcludePrefix = this.textBoxExculdePrefix.Text;
-            options.CellJson = this.checkBoxCellJson.Checked;
-            options.AllString = this.checkBoxAllString.Checked;
+            var options = new Program.Options()
+            {
+                ExcelPath = path,
+                ExportArray = comboBoxType.SelectedIndex == 0,
+                Encoding = comboBoxEncoding.SelectedText,
+                Lowcase = comboBoxLowcase.SelectedIndex == 0,
+                HeaderRows = int.Parse(comboBoxHeader.Text),
+                DateFormat = comboBoxDateFormat.Text,
+                ForceSheetName = comboBoxSheetName.SelectedIndex == 0,
+                ExcludePrefix = textBoxExculdePrefix.Text,
+                CellJson = checkBoxCellJson.Checked,
+                AllString = checkBoxAllString.Checked
+            };
 
             //-- start import
-            this.backgroundWorker.RunWorkerAsync(options);
+            backgroundWorker.RunWorkerAsync(options);
         }
 
         /// <summary>
@@ -156,10 +162,10 @@ namespace excel2json.GUI
         /// </summary>
         private void panelExcelDropBox_DragDrop(object sender, DragEventArgs e)
         {
-            string[] dropData = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            var dropData = (string[])e.Data.GetData(DataFormats.FileDrop, false);
             if (dropData != null)
             {
-                this.loadExcelAsync(dropData[0]);
+                loadExcelAsync(dropData[0]);
             }
         }
 
@@ -178,11 +184,11 @@ namespace excel2json.GUI
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                string[] dropData = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                var dropData = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 if (dropData != null && dropData.Length > 0)
                 {
-                    string szPath = dropData[0];
-                    string szExt = System.IO.Path.GetExtension(szPath);
+                    var szPath = dropData[0];
+                    var szExt = System.IO.Path.GetExtension(szPath);
                     FileName = System.IO.Path.GetFileNameWithoutExtension(szPath);
                     szExt = szExt.ToLower();
                     if (szExt == ".xlsx")
@@ -200,9 +206,9 @@ namespace excel2json.GUI
         /// </summary>
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            lock (this.mDataMgr)
+            lock (mDataMgr)
             {
-                this.mDataMgr.loadExcel((Program.Options)e.Argument);
+                mDataMgr.loadExcel((Program.Options)e.Argument);
             }
         }
 
@@ -220,10 +226,10 @@ namespace excel2json.GUI
             }
 
             // 更新UI
-            lock (this.mDataMgr)
+            lock (mDataMgr)
             {
-                this.statusLabel.IsLink = false;
-                this.statusLabel.Text = "Load completed.";
+                statusLabel.IsLink = false;
+                statusLabel.Text = "Load completed.";
 
                 mJsonTextBox.Text = mDataMgr.JsonContext;
                 mCSharpTextBox.Text = mDataMgr.CSharpCode;
@@ -237,12 +243,14 @@ namespace excel2json.GUI
         /// </summary>
         private void btnImportExcel_Click(object sender, EventArgs e)
         {
-            OpenFileDialog dlg = new OpenFileDialog();
-            dlg.RestoreDirectory = true;
-            dlg.Filter = "Excel File(*.xlsx)|*.xlsx";
+            var dlg = new OpenFileDialog
+            {
+                RestoreDirectory = true,
+                Filter = "Excel File(*.xlsx)|*.xlsx"
+            };
             if (dlg.ShowDialog() == DialogResult.OK)
             {
-                this.loadExcelAsync(dlg.FileName);
+                loadExcelAsync(dlg.FileName);
             }
         }
 
@@ -251,9 +259,19 @@ namespace excel2json.GUI
         /// </summary>
         private void statusLabel_Click(object sender, EventArgs e)
         {
-            if (this.statusLabel.IsLink)
+            if (statusLabel.IsLink)
             {
-                System.Diagnostics.Process.Start(this.statusLabel.Text);
+                System.Diagnostics.Process.Start(statusLabel.Text);
+            }
+        }
+        /// <summary>
+        /// 点击状态栏链接
+        /// </summary>
+        private void statusLabel1_Click(object sender, EventArgs e)
+        {
+            if (toolStripStatusLabel1.IsLink)
+            {
+                System.Diagnostics.Process.Start(toolStripStatusLabel1.Text);
             }
         }
 
@@ -265,10 +283,12 @@ namespace excel2json.GUI
 
             try
             {
-                SaveFileDialog dlg = new SaveFileDialog();
-                dlg.RestoreDirectory = true;
-                dlg.Filter = filter;
-                dlg.FileName = FileName;
+                var dlg = new SaveFileDialog
+                {
+                    RestoreDirectory = true,
+                    Filter = filter,
+                    FileName = FileName
+                };
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     lock (mDataMgr)
@@ -283,7 +303,7 @@ namespace excel2json.GUI
                                 break;
                         }
                     }
-                    showStatus(string.Format("{0} saved!", dlg.FileName), Color.Black);
+                    showStatus($"{dlg.FileName} saved!", Color.Black);
                 }// end of if
             }
             catch (Exception ex)
@@ -319,9 +339,9 @@ namespace excel2json.GUI
         /// <param name="color">信息颜色</param>
         private void showStatus(string szMessage, Color color)
         {
-            this.statusLabel.Text = szMessage;
-            this.statusLabel.ForeColor = color;
-            this.statusLabel.IsLink = false;
+            statusLabel.Text = szMessage;
+            statusLabel.ForeColor = color;
+            statusLabel.IsLink = false;
         }
 
         /// <summary>

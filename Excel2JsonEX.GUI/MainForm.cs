@@ -1,14 +1,10 @@
-﻿using FastColoredTextBoxNS;
-using System;
-using System.Collections.Generic;
+using ICSharpCode.TextEditor;
+using ICSharpCode.TextEditor.Document;
 using System.ComponentModel;
-using System.Drawing;
 using System.Text;
-using System.Windows.Forms;
 
-namespace excel2json.GUI
+namespace Excel2JsonEX.GUI
 {
-
     /// <summary>
     /// 主窗口
     /// </summary>
@@ -16,23 +12,17 @@ namespace excel2json.GUI
     {
         // Excel导入数据管理
         private DataManager mDataMgr;
-        private string mCurrentXlsx;
+        private string mCurrentXlsx = string.Empty;
 
         // 支持语法高亮的文本框
-        private FastColoredTextBox mJsonTextBox;
-        private FastColoredTextBox mCSharpTextBox;
-
-
-        // 文本框的样式
-        private TextStyle mBrownStyle = new(Brushes.Brown, null, FontStyle.Regular);
-        private TextStyle mMagentaStyle = new(Brushes.Magenta, null, FontStyle.Regular);
-        private TextStyle mGreenStyle = new(Brushes.Green, null, FontStyle.Regular);
+        private TextEditorControlEx mJsonTextBox;
+        private TextEditorControlEx mCSharpTextBox;
 
         // 导出数据相关的按钮，方便整体Enable/Disable
         private List<ToolStripButton> mExportButtonList;
 
         // 打开的excel文件名，不包含后缀xlsx。。。
-        private string FileName;
+        private string FileName = string.Empty;
 
         /// <summary>
         /// 构造函数，初始化控件初值；创建文本框
@@ -40,14 +30,25 @@ namespace excel2json.GUI
         public MainForm()
         {
             InitializeComponent();
+            var synDir = Path.Combine(Application.StartupPath, "Highlighting");
 
+            // check if directory exists to prevent throwing an exception
+            if (Directory.Exists(synDir))
+            {
+                // create new provider with the highlighting directory
+                var fsmProvider = new FileSyntaxModeProvider(synDir);
+                // attach to the text editor
+                HighlightingManager.Manager.AddSyntaxModeFileProvider(fsmProvider);
+            }
             //-- syntax highlight text box
             mJsonTextBox = createTextBoxInTab(tabPageJSON);
-            mJsonTextBox.Language = Language.Custom;
-            mJsonTextBox.TextChanged += new EventHandler<TextChangedEventArgs>(jsonTextChanged);
+            mJsonTextBox.SetFoldingStrategy("JSON");
+            mJsonTextBox.SetHighlighting("JSON");
+            // mJsonTextBox.TextChanged += jsonTextChanged;
 
             mCSharpTextBox = createTextBoxInTab(tabCSharp);
-            mCSharpTextBox.Language = Language.CSharp;
+            mCSharpTextBox.SetFoldingStrategy("C#");
+            mCSharpTextBox.SetHighlighting("C#");
 
             //-- componet init states
             comboBoxType.SelectedIndex = 0;
@@ -95,29 +96,15 @@ namespace excel2json.GUI
         /// </summary>
         /// <param name="tab">TabPage容器控件</param>
         /// <returns>新建的Text Box控件</returns>
-        private FastColoredTextBox createTextBoxInTab(TabPage tab)
+        private TextEditorControlEx createTextBoxInTab(TabPage tab)
         {
-            var textBox = new FastColoredTextBox()
+            var textBox = new TextEditorControlEx()
             {
                 Dock = DockStyle.Fill,
                 Font = new("Microsoft YaHei", 11F)
             };
             tab.Controls.Add(textBox);
             return textBox;
-        }
-
-        /// <summary>
-        /// 设置Json文本高亮格式
-        /// </summary>
-        private void jsonTextChanged(object sender, TextChangedEventArgs e)
-        {
-            e.ChangedRange.ClearStyle(mBrownStyle, mMagentaStyle, mGreenStyle);
-            //allow to collapse brackets block
-            e.ChangedRange.SetFoldingMarkers("{", "}");
-            //string highlighting
-            e.ChangedRange.SetStyle(mBrownStyle, @"""""|@""""|''|@"".*?""|(?<!@)(?<range>"".*?[^\\]"")|'.*?[^\\]'");
-            //number highlighting
-            e.ChangedRange.SetStyle(mGreenStyle, @"\b\d+[\.]?\d*([eE]\-?\d+)?[lLdDfF]?\b|\b0x[a-fA-F\d]+\b");
         }
 
         /// <summary>
@@ -139,7 +126,7 @@ namespace excel2json.GUI
             statusLabel.Text = "Loading Excel ...";
 
             //-- load options from ui
-            var options = new Program.Options()
+            var options = new Options()
             {
                 ExcelPath = path,
                 ExportArray = comboBoxType.SelectedIndex == 0,
@@ -162,7 +149,8 @@ namespace excel2json.GUI
         /// </summary>
         private void panelExcelDropBox_DragDrop(object sender, DragEventArgs e)
         {
-            var dropData = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            if (e.Data == null) { return; }
+            var dropData = (string[]?)e.Data.GetData(DataFormats.FileDrop, false);
             if (dropData != null)
             {
                 loadExcelAsync(dropData[0]);
@@ -182,9 +170,10 @@ namespace excel2json.GUI
         /// </summary>
         private void panelExcelDropBox_DragEnter(object sender, DragEventArgs e)
         {
+            if (e.Data == null) { return; }
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                var dropData = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                var dropData = (string[]?)e.Data.GetData(DataFormats.FileDrop, false);
                 if (dropData != null && dropData.Length > 0)
                 {
                     var szPath = dropData[0];
@@ -206,9 +195,10 @@ namespace excel2json.GUI
         /// </summary>
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            if (e.Argument == null) { return; }
             lock (mDataMgr)
             {
-                mDataMgr.loadExcel((Program.Options)e.Argument);
+                mDataMgr.loadExcel((Options)e.Argument);
             }
         }
 
@@ -261,7 +251,7 @@ namespace excel2json.GUI
         {
             if (statusLabel.IsLink)
             {
-                System.Diagnostics.Process.Start(statusLabel.Text);
+                System.Diagnostics.Process.Start("explorer.exe", statusLabel.Text!);
             }
         }
         /// <summary>
@@ -271,7 +261,7 @@ namespace excel2json.GUI
         {
             if (toolStripStatusLabel1.IsLink)
             {
-                System.Diagnostics.Process.Start(toolStripStatusLabel1.Text);
+                System.Diagnostics.Process.Start("explorer.exe", toolStripStatusLabel1.Text!);
             }
         }
 

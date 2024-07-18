@@ -32,7 +32,7 @@ public class CSDefineGenerator
         var sb = new StringBuilder();
         sb.AppendLine("//");
         sb.AppendLine("// Auto Generated Code By Excel2JsonEX");
-        sb.AppendLine("// https://neil3d.gitee.io/coding/excel2json.html");
+        sb.AppendLine("// https://github.com/Sonic853/Excel2JsonEX");
         sb.AppendLine("// 1. 每个 Sheet 形成一个 Struct 定义, Sheet 的名称作为 Struct 的名称");
         sb.AppendLine("// 2. 表格约定：第一行是变量名称，第二行是变量类型");
         sb.AppendLine($"// Generate From {excelName}");

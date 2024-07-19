@@ -26,7 +26,7 @@ public class CSDefineGenerator
         }
     }
 
-    public CSDefineGenerator(string excelName, ExcelLoader excel, string excludePrefix)
+    public CSDefineGenerator(string excelNameExt, ExcelLoader excel, Options options)
     {
         //-- 创建代码字符串
         var sb = new StringBuilder();
@@ -35,13 +35,13 @@ public class CSDefineGenerator
         sb.AppendLine("// https://github.com/Sonic853/Excel2JsonEX");
         sb.AppendLine("// 1. 每个 Sheet 形成一个 Struct 定义, Sheet 的名称作为 Struct 的名称");
         sb.AppendLine("// 2. 表格约定：第一行是变量名称，第二行是变量类型");
-        sb.AppendLine($"// Generate From {excelName}");
+        sb.AppendLine($"// Generate From {excelNameExt}");
         sb.AppendLine();
 
         for (var i = 0; i < excel.Sheets.Count; i++)
         {
             var sheet = excel.Sheets[i];
-            sb.Append(_exportSheet(sheet, excludePrefix));
+            sb.Append(_exportSheet(sheet, options));
         }
 
         sb.AppendLine("// End of Auto Generated Code");
@@ -49,13 +49,13 @@ public class CSDefineGenerator
         mCode = sb.ToString();
     }
 
-    private string _exportSheet(DataTable sheet, string excludePrefix)
+    private string _exportSheet(DataTable sheet, Options options)
     {
         if (sheet.Columns.Count < 0 || sheet.Rows.Count < 2)
             return "";
 
         var sheetName = sheet.TableName;
-        if (excludePrefix.Length > 0 && sheetName.StartsWith(excludePrefix))
+        if (options.ExcludePrefix.Length > 0 && sheetName.StartsWith(options.ExcludePrefix))
             return "";
 
         // get field list
@@ -67,7 +67,7 @@ public class CSDefineGenerator
         {
             // 过滤掉包含指定前缀的列
             var columnName = column.ToString();
-            if (excludePrefix.Length > 0 && columnName.StartsWith(excludePrefix))
+            if (options.ExcludePrefix.Length > 0 && columnName.StartsWith(options.ExcludePrefix))
                 continue;
 
             FieldDef field;
@@ -84,9 +84,12 @@ public class CSDefineGenerator
 
         foreach (var field in fieldList)
         {
-            sb.AppendLine("\t/// <summary>");
-            sb.AppendLine($"\t/// {field.comment}");
-            sb.AppendLine("\t/// </summary>");
+            if (options.HeaderRows > 2)
+            {
+                sb.AppendLine("\t/// <summary>");
+                sb.AppendLine($"\t/// {field.comment}");
+                sb.AppendLine("\t/// </summary>");
+            }
             sb.AppendLine($"\tpublic {field.type} {field.name};");
         }
 

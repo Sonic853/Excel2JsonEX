@@ -67,6 +67,7 @@ class DataManager
 
         //-- Excel File
         var excelPath = options.ExcelPath;
+        var excelNameExt = Path.GetFileName(excelPath);
         var excelName = Path.GetFileNameWithoutExtension(excelPath);
 
         //-- Header
@@ -92,9 +93,9 @@ class DataManager
         var excel = new ExcelLoader(excelPath, header);
 
         //-- C# 结构体定义
-        mCSharp = new(excelPath, excel, options.ExcludePrefix);
+        mCSharp = new(excelNameExt, excel, options);
 
         //-- 导出JSON
-        mJson = new(excel, options.Lowcase, options.ExportArray, options.DateFormat, options.ForceSheetName, header, options.ExcludePrefix, options.CellJson, options.AllString);
+        mJson = new(excel, options);
     }
 }

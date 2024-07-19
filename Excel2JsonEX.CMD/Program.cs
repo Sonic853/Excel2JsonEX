@@ -11,6 +11,12 @@ static void Run(Options options)
 
     //-- Excel File 
     var excelPath = options.ExcelPath;
+    if (string.IsNullOrEmpty(excelPath))
+    {
+        Console.WriteLine("excel is Required");
+        return;
+    }
+    var excelNameExt = Path.GetFileName(options.ExcelPath);
     var excelName = Path.GetFileNameWithoutExtension(options.ExcelPath);
 
     //-- Header
@@ -36,7 +42,7 @@ static void Run(Options options)
 
     //-- Export path
     string exportPath;
-    if (options.JsonPath != null && options.JsonPath.Length > 0)
+    if (!string.IsNullOrEmpty(options.JsonPath))
     {
         exportPath = options.JsonPath;
     }
@@ -49,13 +55,13 @@ static void Run(Options options)
     var excel = new ExcelLoader(excelPath, header);
 
     //-- export
-    var exporter = new JsonExporter(excel, options.Lowcase, options.ExportArray, dateFormat, options.ForceSheetName, header, options.ExcludePrefix, options.CellJson, options.AllString);
+    var exporter = new JsonExporter(excel, options);
     exporter.SaveToFile(exportPath, cd);
 
     //-- 生成C#定义文件
     if (options.CSharpPath != null && options.CSharpPath.Length > 0)
     {
-        var generator = new CSDefineGenerator(excelName, excel, options.ExcludePrefix);
+        var generator = new CSDefineGenerator(excelNameExt, excel, options);
         generator.SaveToFile(options.CSharpPath, cd);
     }
 }

@@ -122,7 +122,7 @@ public sealed class Options
     /// <summary>
     /// convert json string in cell
     /// </summary>
-    [Option('j', "cell_json", Required = false, Default = false, HelpText = "convert json string in cell")]
+    [Option('n', "cell_json", Required = false, Default = false, HelpText = "convert json string in cell")]
     public bool CellJson
     {
         get;

@@ -1,6 +1,7 @@
 using ICSharpCode.TextEditor;
 using ICSharpCode.TextEditor.Document;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Text;
 
 namespace Excel2JsonEX.GUI
@@ -162,7 +163,7 @@ namespace Excel2JsonEX.GUI
         /// </summary>
         private void btnHelp_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("https://neil3d.github.io/coding/excel2json.html");
+            Process.Start(new ProcessStartInfo("https://neil3d.github.io/coding/excel2json.html") { UseShellExecute = true });
         }
 
         /// <summary>

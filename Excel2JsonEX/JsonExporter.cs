@@ -205,18 +205,11 @@ public class JsonExporter
                 else if (mHeaderRows >= 1)
                 // 从第二行获取类型
                 {
-                    var typeObj = sheet.Rows[0][column];
-                    var typeString = typeObj.ToString();
-                    if (!string.IsNullOrEmpty(typeString))
+                    var defaultType = getDefaultType(sheet.Rows[0][column], out var isSet);
+                    if (isSet)
                     {
-                        var defaultType = getDefaultType(typeString, out var isSet);
-                        if (isSet)
-                        {
-                            foundTypeColumn.TryAdd(column, defaultType);
-                            value = defaultType;
-                        }
-                        else
-                            value = getColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
+                        foundTypeColumn.TryAdd(column, defaultType);
+                        value = defaultType;
                     }
                     else
                         value = getColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
@@ -228,16 +221,21 @@ public class JsonExporter
             }
             else if (value.GetType() == typeof(double))
             { // 去掉数值字段的“.0”
-                double num = (double)value;
+                var num = (double)value;
                 if ((int)num == num)
                     value = (int)num;
             }
+
 
             //全部转换为string
             //方便LitJson.JsonMapper.ToObject<List<Dictionary<string, string>>>(textAsset.text)等使用方式 之后根据自己的需求进行解析
             if (options.AllString && value is not string)
             {
                 value = value?.ToString();
+            }
+            else if (mHeaderRows >= 1)
+            {
+                value = getValueByType(value, sheet.Rows[0][column]);
             }
 
             var fieldName = column.ToString();
@@ -255,15 +253,22 @@ public class JsonExporter
         return rowData;
     }
 
-    static object? getDefaultType(string typeString, out bool isSet)
+    static object? getDefaultType(object typeObj, out bool isSet)
     {
-        isSet = false;
+
+        var typeString = typeObj.ToString();
+        if (string.IsNullOrEmpty(typeString))
+        {
+            isSet = false;
+            return null;
+        }
         switch (typeString.ToLower())
         {
             case "string":
                 isSet = true;
-                return "";
+                return default(string);
             case "boolean":
+            case "bool":
                 isSet = true;
                 return default(bool);
             case "int":
@@ -297,6 +302,25 @@ public class JsonExporter
                 isSet = false;
                 return null;
         }
+    }
+
+    static object? getValueByType(object? value, object typeObj)
+    {
+        var typeString = typeObj.ToString();
+        if (string.IsNullOrEmpty(typeString))
+        {
+            return value;
+        }
+        return typeString.ToLower() switch
+        {
+            "string" => value?.ToString(),
+            "boolean" or "bool" => Convert.ToBoolean(value),
+            "int" => Convert.ToInt32(value),
+            "long" => Convert.ToInt64(value),
+            "float" => Convert.ToSingle(value),
+            "double" => Convert.ToDouble(value),
+            _ => value,
+        };
     }
 
     /// <summary>

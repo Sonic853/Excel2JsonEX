@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Text;
 
@@ -40,6 +41,21 @@ public class JsonExporter
             if (sheet.Columns.Count > 0 && sheet.Rows.Count > 0)
                 validSheets.Add(sheet);
         }
+        // var validSheetsArray = new DataTable[excel.Sheets.Count];
+        // Parallel.For(0, excel.Sheets.Count, i =>
+        // {
+        //     DataTable sheet = excel.Sheets[i];
+
+        //     // 过滤掉包含特定前缀的表单
+        //     var sheetName = sheet.TableName;
+        //     if (options.ExcludePrefix.Length > 0 && sheetName.StartsWith(options.ExcludePrefix))
+        //         return;
+
+        //     if (sheet.Columns.Count > 0 && sheet.Rows.Count > 0)
+        //         validSheetsArray[i] = sheet;
+        // });
+        // // 筛掉 null 的表单
+        // var validSheets = validSheetsArray.Where(sheet => sheet != null).ToList();
 
         var jsonSettings = new JsonSerializerSettings
         {
@@ -64,6 +80,11 @@ public class JsonExporter
                 object sheetValue = convertSheet(sheet, options);
                 data.Add(sheet.TableName, sheetValue);
             }
+            // Parallel.ForEach(validSheets, sheet =>
+            // {
+            //     object sheetValue = convertSheet(sheet, options);
+            //     data.Add(sheet.TableName, sheetValue);
+            // });
 
             //-- convert to json string
             mContext = JsonConvert.SerializeObject(data, jsonSettings);
@@ -80,19 +101,20 @@ public class JsonExporter
 
     private object convertSheetToArray(DataTable sheet, Options options)
     {
-        var values = new List<object>();
-
         var firstDataRow = mHeaderRows;
-        for (int i = firstDataRow; i < sheet.Rows.Count; i++)
+        if (firstDataRow < sheet.Rows.Count)
         {
-            DataRow row = sheet.Rows[i];
-
-            values.Add(
-                convertRowToDict(sheet, row, options)
-                );
+            var values = new object[sheet.Rows.Count - firstDataRow];
+            var foundindexColumn = new ConcurrentDictionary<DataColumn, int>();
+            Parallel.For(firstDataRow, sheet.Rows.Count, i =>
+            {
+                DataRow row = sheet.Rows[i];
+                values[i - firstDataRow] = convertRowToDict(sheet, row, options, ref foundindexColumn);
+            });
+            return values.ToList();
         }
 
-        return values;
+        return new List<object>();
     }
 
     /// <summary>
@@ -103,18 +125,30 @@ public class JsonExporter
         var importData = new Dictionary<string, object>();
 
         var firstDataRow = mHeaderRows;
-        for (var i = firstDataRow; i < sheet.Rows.Count; i++)
+        // for (var i = firstDataRow; i < sheet.Rows.Count; i++)
+        // {
+        //     DataRow row = sheet.Rows[i];
+        //     var ID = row[sheet.Columns[0]].ToString();
+        //     if (string.IsNullOrEmpty(ID))
+        //         ID = $"row_{i}";
+
+        //     var rowObject = convertRowToDict(sheet, row, options);
+        //     // 多余的字段
+        //     // rowObject[ID] = ID;
+        //     importData[ID] = rowObject;
+        // }
+        var foundindexColumn = new ConcurrentDictionary<DataColumn, int>();
+        Parallel.For(firstDataRow, sheet.Rows.Count, i =>
         {
             DataRow row = sheet.Rows[i];
             var ID = row[sheet.Columns[0]].ToString();
             if (string.IsNullOrEmpty(ID))
                 ID = $"row_{i}";
 
-            var rowObject = convertRowToDict(sheet, row, options);
-            // 多余的字段
-            // rowObject[ID] = ID;
-            importData[ID] = rowObject;
-        }
+            var rowObject = convertRowToDict(sheet, row, options, ref foundindexColumn);
+            lock (importData)
+                importData.TryAdd(ID, rowObject);
+        });
 
         return importData;
     }
@@ -122,7 +156,7 @@ public class JsonExporter
     /// <summary>
     /// 把一行数据转换成一个对象，每一列是一个属性
     /// </summary>
-    private Dictionary<string, object> convertRowToDict(DataTable sheet, DataRow row, Options options)
+    private Dictionary<string, object> convertRowToDict(DataTable sheet, DataRow row, Options options, ref ConcurrentDictionary<DataColumn, int> foundindexColumn)
     {
         var rowData = new Dictionary<string, object>();
         var col = 0;
@@ -164,7 +198,7 @@ public class JsonExporter
 
             if (value.GetType() == typeof(DBNull))
             {
-                value = getColumnDefault(sheet, column, mHeaderRows);
+                value = getColumnDefault(sheet, column, mHeaderRows, ref foundindexColumn);
             }
             else if (value.GetType() == typeof(double))
             { // 去掉数值字段的“.0”
@@ -198,18 +232,38 @@ public class JsonExporter
     /// <summary>
     /// 对于表格中的空值，找到一列中的非空值，并构造一个同类型的默认值
     /// </summary>
-    private object? getColumnDefault(DataTable sheet, DataColumn column, int firstDataRow)
+    private object? getColumnDefault(DataTable sheet, DataColumn column, int firstDataRow, ref ConcurrentDictionary<DataColumn, int> foundindexColumn)
     {
-        for (var i = firstDataRow; i < sheet.Rows.Count; i++)
+        // for (var i = firstDataRow; i < sheet.Rows.Count; i++)
+        // {
+        //     object value = sheet.Rows[i][column];
+        //     var valueType = value.GetType();
+        //     if (valueType == typeof(DBNull)) { continue; }
+        //     if (valueType.IsValueType)
+        //         return Activator.CreateInstance(valueType);
+        //     break;
+        // }
+        object? result = "";
+        var indexResult = -1;
+        if (foundindexColumn.TryGetValue(column, out var index))
         {
+            if (index == -1) { return result; }
+            return Activator.CreateInstance(sheet.Rows[index][column].GetType());
+        }
+        Parallel.For(firstDataRow, sheet.Rows.Count, i =>
+        {
+            if (indexResult != -1) { return; }
             object value = sheet.Rows[i][column];
             var valueType = value.GetType();
-            if (valueType == typeof(DBNull)) { continue; }
-            if (valueType.IsValueType)
-                return Activator.CreateInstance(valueType);
-            break;
-        }
-        return "";
+            if (valueType == typeof(DBNull)) { return; }
+            if (valueType.IsValueType && indexResult == -1)
+            {
+                indexResult = i;
+                result = Activator.CreateInstance(valueType);
+            }
+        });
+        foundindexColumn.TryAdd(column, indexResult);
+        return result;
     }
 
     /// <summary>

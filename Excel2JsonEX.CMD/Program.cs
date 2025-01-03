@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using Excel2JsonEX;
+using System.Diagnostics;
 using System.Text;
 
 /// <summary>
@@ -8,7 +9,6 @@ using System.Text;
 /// <param name="options">命令行参数</param>
 static void Run(Options options)
 {
-
     //-- Excel File 
     var excelPath = options.ExcelPath;
     if (string.IsNullOrEmpty(excelPath))
@@ -71,41 +71,43 @@ if (args.Length <= 0)
 {
     //-- GUI MODE ----------------------------------------------------------
     Console.WriteLine("Please use Excel2JsonEX.GUI.exe");
-    Console.Read();
-    // Application.EnableVisualStyles();
-    // Application.SetCompatibleTextRenderingDefault(false);
-    // Application.Run(new GUI.MainForm());
+    if (File.Exists("Excel2JsonEX.GUI.exe"))
+    {
+        Process.Start("Excel2JsonEX.GUI.exe");
+    }
+    else
+    {
+        Console.Read();
+    }
+    return;
 }
-else
+
+//-- COMMAND LINE MODE -------------------------------------------------
+
+//-- 分析命令行参数
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+var parser = new Parser(with => with.HelpWriter = Console.Error);
+
+parser.ParseArguments<Options>(args)
+.WithParsed(options =>
 {
-    //-- COMMAND LINE MODE -------------------------------------------------
-
-    //-- 分析命令行参数
-    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-    var parser = new Parser(with => with.HelpWriter = Console.Error);
-
-    parser.ParseArguments<Options>(args)
-        .WithParsed(options =>
-        {
-            //-- 执行导出操作
-            try
-            {
-                var startTime = DateTime.Now;
-                Run(options);
-                //-- 程序计时
-                var endTime = DateTime.Now;
-                var dur = endTime - startTime;
-                Console.WriteLine($"[{Path.GetFileName(options.ExcelPath)}]：\tConversion complete in [{dur.TotalMilliseconds}ms].");
-            }
-            catch (Exception exp)
-            {
-                Console.WriteLine($"Error: {exp.Message}");
-            }
-        })
-        .WithNotParsed(errors =>
-        {
-            // 处理解析错误
-            Environment.Exit(-1);
-        });
-
-}// end of else
+    //-- 执行导出操作
+    try
+    {
+        var startTime = DateTime.Now;
+        Run(options);
+        //-- 程序计时
+        var endTime = DateTime.Now;
+        var dur = endTime - startTime;
+        Console.WriteLine($"[{Path.GetFileName(options.ExcelPath)}]：\tConversion complete in [{dur.TotalMilliseconds}ms].");
+    }
+    catch (Exception exp)
+    {
+        Console.WriteLine($"Error: {exp.Message}");
+    }
+})
+.WithNotParsed(errors =>
+{
+    // 处理解析错误
+    Environment.Exit(-1);
+});

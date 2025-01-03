@@ -27,13 +27,13 @@ public class JsonExporter
     public JsonExporter(ExcelLoader excel, Options options)
     {
         mHeaderRows = options.HeaderRows - 1;
-        List<DataTable> validSheets = new List<DataTable>();
+        var validSheets = new List<DataTable>();
         for (int i = 0; i < excel.Sheets.Count; i++)
         {
             DataTable sheet = excel.Sheets[i];
 
             // 过滤掉包含特定前缀的表单
-            string sheetName = sheet.TableName;
+            var sheetName = sheet.TableName;
             if (options.ExcludePrefix.Length > 0 && sheetName.StartsWith(options.ExcludePrefix))
                 continue;
 
@@ -58,7 +58,7 @@ public class JsonExporter
         else
         { // mutiple sheet
 
-            Dictionary<string, object> data = new Dictionary<string, object>();
+            var data = new Dictionary<string, object>();
             foreach (var sheet in validSheets)
             {
                 object sheetValue = convertSheet(sheet, options);
@@ -80,9 +80,9 @@ public class JsonExporter
 
     private object convertSheetToArray(DataTable sheet, Options options)
     {
-        List<object> values = new List<object>();
+        var values = new List<object>();
 
-        int firstDataRow = mHeaderRows;
+        var firstDataRow = mHeaderRows;
         for (int i = firstDataRow; i < sheet.Rows.Count; i++)
         {
             DataRow row = sheet.Rows[i];
@@ -102,7 +102,7 @@ public class JsonExporter
     {
         var importData = new Dictionary<string, object>();
 
-        int firstDataRow = mHeaderRows;
+        var firstDataRow = mHeaderRows;
         for (var i = firstDataRow; i < sheet.Rows.Count; i++)
         {
             DataRow row = sheet.Rows[i];
@@ -125,11 +125,11 @@ public class JsonExporter
     private Dictionary<string, object> convertRowToDict(DataTable sheet, DataRow row, Options options)
     {
         var rowData = new Dictionary<string, object>();
-        int col = 0;
+        var col = 0;
         foreach (DataColumn column in sheet.Columns)
         {
             // 过滤掉包含指定前缀的列
-            string columnName = column.ToString();
+            var columnName = column.ToString();
             if (options.ExcludePrefix.Length > 0 && columnName.StartsWith(options.ExcludePrefix))
                 continue;
 
@@ -172,13 +172,13 @@ public class JsonExporter
                 value = value?.ToString();
             }
 
-            string fieldName = column.ToString();
+            var fieldName = column.ToString();
             // 表头自动转换成小写
             if (options.Lowcase)
                 fieldName = fieldName.ToLower();
 
             if (string.IsNullOrEmpty(fieldName))
-                fieldName = string.Format("col_{0}", col);
+                fieldName = $"col_{col}";
 
             rowData[fieldName] = value!;
             col++;
@@ -192,10 +192,10 @@ public class JsonExporter
     /// </summary>
     private object? getColumnDefault(DataTable sheet, DataColumn column, int firstDataRow)
     {
-        for (int i = firstDataRow; i < sheet.Rows.Count; i++)
+        for (var i = firstDataRow; i < sheet.Rows.Count; i++)
         {
             object value = sheet.Rows[i][column];
-            Type valueType = value.GetType();
+            var valueType = value.GetType();
             if (valueType == typeof(DBNull)) { continue; }
             if (valueType.IsValueType)
                 return Activator.CreateInstance(valueType);
@@ -211,10 +211,8 @@ public class JsonExporter
     public void SaveToFile(string filePath, Encoding encoding)
     {
         //-- 保存文件
-        using (FileStream file = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-        {
-            using (TextWriter writer = new StreamWriter(file, encoding))
-                writer.Write(mContext);
-        }
+        using var file = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+        using var writer = new StreamWriter(file, encoding);
+        writer.Write(mContext);
     }
 }

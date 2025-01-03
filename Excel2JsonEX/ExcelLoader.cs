@@ -27,9 +27,9 @@ namespace Excel2JsonEX
             }
 
 
-            this.mData = result;
+            mData = result;
 
-            if (this.Sheets.Count < 1)
+            if (Sheets.Count < 1)
             {
                 throw new Exception("Excel file is empty: " + filePath);
             }
@@ -39,7 +39,7 @@ namespace Excel2JsonEX
         {
             get
             {
-                return this.mData.Tables;
+                return mData.Tables;
             }
         }
     }

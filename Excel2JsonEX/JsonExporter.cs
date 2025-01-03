@@ -105,11 +105,11 @@ public class JsonExporter
         if (firstDataRow < sheet.Rows.Count)
         {
             var values = new object[sheet.Rows.Count - firstDataRow];
-            var foundindexColumn = new ConcurrentDictionary<DataColumn, int>();
+            var foundTypeColumn = new ConcurrentDictionary<DataColumn, object?>();
             Parallel.For(firstDataRow, sheet.Rows.Count, i =>
             {
                 DataRow row = sheet.Rows[i];
-                values[i - firstDataRow] = convertRowToDict(sheet, row, options, ref foundindexColumn);
+                values[i - firstDataRow] = convertRowToDict(sheet, row, options, ref foundTypeColumn);
             });
             return values.ToList();
         }
@@ -137,7 +137,7 @@ public class JsonExporter
         //     // rowObject[ID] = ID;
         //     importData[ID] = rowObject;
         // }
-        var foundindexColumn = new ConcurrentDictionary<DataColumn, int>();
+        var foundTypeColumn = new ConcurrentDictionary<DataColumn, object?>();
         Parallel.For(firstDataRow, sheet.Rows.Count, i =>
         {
             DataRow row = sheet.Rows[i];
@@ -145,7 +145,7 @@ public class JsonExporter
             if (string.IsNullOrEmpty(ID))
                 ID = $"row_{i}";
 
-            var rowObject = convertRowToDict(sheet, row, options, ref foundindexColumn);
+            var rowObject = convertRowToDict(sheet, row, options, ref foundTypeColumn);
             lock (importData)
                 importData.TryAdd(ID, rowObject);
         });
@@ -156,7 +156,7 @@ public class JsonExporter
     /// <summary>
     /// 把一行数据转换成一个对象，每一列是一个属性
     /// </summary>
-    private Dictionary<string, object> convertRowToDict(DataTable sheet, DataRow row, Options options, ref ConcurrentDictionary<DataColumn, int> foundindexColumn)
+    private Dictionary<string, object> convertRowToDict(DataTable sheet, DataRow row, Options options, ref ConcurrentDictionary<DataColumn, object?> foundTypeColumn)
     {
         var rowData = new Dictionary<string, object>();
         var col = 0;
@@ -198,7 +198,33 @@ public class JsonExporter
 
             if (value.GetType() == typeof(DBNull))
             {
-                value = getColumnDefault(sheet, column, mHeaderRows, ref foundindexColumn);
+                if (foundTypeColumn.TryGetValue(column, out var _value))
+                {
+                    value = _value;
+                }
+                else if (mHeaderRows >= 1)
+                // 从第二行获取类型
+                {
+                    var typeObj = sheet.Rows[0][column];
+                    var typeString = typeObj.ToString();
+                    if (!string.IsNullOrEmpty(typeString))
+                    {
+                        var defaultType = getDefaultType(typeString, out var isSet);
+                        if (isSet)
+                        {
+                            foundTypeColumn.TryAdd(column, defaultType);
+                            value = defaultType;
+                        }
+                        else
+                            value = getColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
+                    }
+                    else
+                        value = getColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
+                }
+                else
+                {
+                    value = getColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
+                }
             }
             else if (value.GetType() == typeof(double))
             { // 去掉数值字段的“.0”
@@ -229,10 +255,54 @@ public class JsonExporter
         return rowData;
     }
 
+    static object? getDefaultType(string typeString, out bool isSet)
+    {
+        isSet = false;
+        switch (typeString.ToLower())
+        {
+            case "string":
+                isSet = true;
+                return "";
+            case "boolean":
+                isSet = true;
+                return default(bool);
+            case "int":
+                isSet = true;
+                return default(int);
+            case "long":
+                isSet = true;
+                return default(long);
+            case "float":
+                isSet = true;
+                return default(float);
+            case "double":
+                isSet = true;
+                return default(double);
+            case "string[]":
+                isSet = true;
+                return default(string[]);
+            case "int[]":
+                isSet = true;
+                return default(int[]);
+            case "long[]":
+                isSet = true;
+                return default(long[]);
+            case "float[]":
+                isSet = true;
+                return default(float[]);
+            case "double[]":
+                isSet = true;
+                return default(double[]);
+            default:
+                isSet = false;
+                return null;
+        }
+    }
+
     /// <summary>
     /// 对于表格中的空值，找到一列中的非空值，并构造一个同类型的默认值
     /// </summary>
-    private object? getColumnDefault(DataTable sheet, DataColumn column, int firstDataRow, ref ConcurrentDictionary<DataColumn, int> foundindexColumn)
+    private object? getColumnDefault(DataTable sheet, DataColumn column, int firstDataRow, ref ConcurrentDictionary<DataColumn, object?> foundTypeColumn)
     {
         // for (var i = firstDataRow; i < sheet.Rows.Count; i++)
         // {
@@ -245,10 +315,9 @@ public class JsonExporter
         // }
         object? result = "";
         var indexResult = -1;
-        if (foundindexColumn.TryGetValue(column, out var index))
+        if (foundTypeColumn.TryGetValue(column, out result))
         {
-            if (index == -1) { return result; }
-            return Activator.CreateInstance(sheet.Rows[index][column].GetType());
+            return result;
         }
         Parallel.For(firstDataRow, sheet.Rows.Count, i =>
         {
@@ -262,7 +331,7 @@ public class JsonExporter
                 result = Activator.CreateInstance(valueType);
             }
         });
-        foundindexColumn.TryAdd(column, indexResult);
+        foundTypeColumn.TryAdd(column, result);
         return result;
     }
 

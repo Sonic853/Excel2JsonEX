@@ -139,17 +139,25 @@ public class JsonExporter
             if (options.CellJson)
             {
                 var cellText = value.ToString()?.Trim();
-                if (!string.IsNullOrEmpty(cellText) && (cellText.StartsWith('[') || cellText.StartsWith('{')))
+                if (!string.IsNullOrEmpty(cellText))
                 {
-                    try
+                    if (cellText.StartsWith('[') || cellText.StartsWith('{'))
                     {
-                        var cellJsonObj = JsonConvert.DeserializeObject(cellText);
-                        if (cellJsonObj != null)
-                            value = cellJsonObj;
+                        try
+                        {
+                            var cellJsonObj = JsonConvert.DeserializeObject(cellText);
+                            if (cellJsonObj != null)
+                                value = cellJsonObj;
+                        }
+                        catch (Exception exp)
+                        {
+                            Console.WriteLine(exp.Message);
+                        }
                     }
-                    catch (Exception exp)
+                    else if (cellText.StartsWith(',') || cellText.StartsWith('，'))
                     {
-                        Console.WriteLine(exp.Message);
+                        var cellArray = cellText.Split([',', '，'], StringSplitOptions.RemoveEmptyEntries);
+                        value = cellArray;
                     }
                 }
             }

@@ -67,7 +67,7 @@ public class JsonExporter
         {   // single sheet
 
             //-- convert to object
-            object sheetValue = convertSheet(validSheets[0], options);
+            object sheetValue = ConvertSheet(validSheets[0], options);
             //-- convert to json string
             mContext = JsonConvert.SerializeObject(sheetValue, jsonSettings);
         }
@@ -77,7 +77,7 @@ public class JsonExporter
             var data = new Dictionary<string, object>();
             foreach (var sheet in validSheets)
             {
-                object sheetValue = convertSheet(sheet, options);
+                object sheetValue = ConvertSheet(sheet, options);
                 data.Add(sheet.TableName, sheetValue);
             }
             // Parallel.ForEach(validSheets, sheet =>
@@ -91,15 +91,15 @@ public class JsonExporter
         }
     }
 
-    private object convertSheet(DataTable sheet, Options options)
+    private object ConvertSheet(DataTable sheet, Options options)
     {
         if (options.ExportArray)
-            return convertSheetToArray(sheet, options);
+            return ConvertSheetToArray(sheet, options);
         else
-            return convertSheetToDict(sheet, options);
+            return ConvertSheetToDict(sheet, options);
     }
 
-    private object convertSheetToArray(DataTable sheet, Options options)
+    private object ConvertSheetToArray(DataTable sheet, Options options)
     {
         var firstDataRow = mHeaderRows;
         if (firstDataRow < sheet.Rows.Count)
@@ -109,7 +109,7 @@ public class JsonExporter
             Parallel.For(firstDataRow, sheet.Rows.Count, i =>
             {
                 DataRow row = sheet.Rows[i];
-                values[i - firstDataRow] = convertRowToDict(sheet, row, options, ref foundTypeColumn);
+                values[i - firstDataRow] = ConvertRowToDict(sheet, row, options, ref foundTypeColumn);
             });
             return values.ToList();
         }
@@ -120,7 +120,7 @@ public class JsonExporter
     /// <summary>
     /// 以第一列为ID，转换成ID->Object的字典对象
     /// </summary>
-    private object convertSheetToDict(DataTable sheet, Options options)
+    private object ConvertSheetToDict(DataTable sheet, Options options)
     {
         var importData = new Dictionary<string, object>();
 
@@ -145,7 +145,7 @@ public class JsonExporter
             if (string.IsNullOrEmpty(ID))
                 ID = $"row_{i}";
 
-            var rowObject = convertRowToDict(sheet, row, options, ref foundTypeColumn);
+            var rowObject = ConvertRowToDict(sheet, row, options, ref foundTypeColumn);
             lock (importData)
                 importData.TryAdd(ID, rowObject);
         });
@@ -156,7 +156,7 @@ public class JsonExporter
     /// <summary>
     /// 把一行数据转换成一个对象，每一列是一个属性
     /// </summary>
-    private Dictionary<string, object> convertRowToDict(DataTable sheet, DataRow row, Options options, ref ConcurrentDictionary<DataColumn, object?> foundTypeColumn)
+    private Dictionary<string, object> ConvertRowToDict(DataTable sheet, DataRow row, Options options, ref ConcurrentDictionary<DataColumn, object?> foundTypeColumn)
     {
         var rowData = new Dictionary<string, object>();
         var col = 0;
@@ -205,18 +205,18 @@ public class JsonExporter
                 else if (mHeaderRows >= 1)
                 // 从第二行获取类型
                 {
-                    var defaultType = getDefaultType(sheet.Rows[0][column], out var isSet);
+                    var defaultType = GetDefaultType(sheet.Rows[0][column], out var isSet);
                     if (isSet)
                     {
                         foundTypeColumn.TryAdd(column, defaultType);
                         value = defaultType;
                     }
                     else
-                        value = getColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
+                        value = GetColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
                 }
                 else
                 {
-                    value = getColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
+                    value = GetColumnDefault(sheet, column, mHeaderRows, ref foundTypeColumn);
                 }
             }
             else if (value.GetType() == typeof(double))
@@ -235,7 +235,7 @@ public class JsonExporter
             }
             else if (mHeaderRows >= 1)
             {
-                value = getValueByType(value, sheet.Rows[0][column]);
+                value = GetValueByType(value, sheet.Rows[0][column]);
             }
 
             var fieldName = column.ToString();
@@ -253,7 +253,7 @@ public class JsonExporter
         return rowData;
     }
 
-    static object? getDefaultType(object typeObj, out bool isSet)
+    static object? GetDefaultType(object typeObj, out bool isSet)
     {
 
         var typeString = typeObj.ToString();
@@ -304,7 +304,7 @@ public class JsonExporter
         }
     }
 
-    static object? getValueByType(object? value, object typeObj)
+    static object? GetValueByType(object? value, object typeObj)
     {
         var typeString = typeObj.ToString();
         if (string.IsNullOrEmpty(typeString))
@@ -326,7 +326,7 @@ public class JsonExporter
     /// <summary>
     /// 对于表格中的空值，找到一列中的非空值，并构造一个同类型的默认值
     /// </summary>
-    private object? getColumnDefault(DataTable sheet, DataColumn column, int firstDataRow, ref ConcurrentDictionary<DataColumn, object?> foundTypeColumn)
+    private static object? GetColumnDefault(DataTable sheet, DataColumn column, int firstDataRow, ref ConcurrentDictionary<DataColumn, object?> foundTypeColumn)
     {
         // for (var i = firstDataRow; i < sheet.Rows.Count; i++)
         // {
@@ -337,9 +337,8 @@ public class JsonExporter
         //         return Activator.CreateInstance(valueType);
         //     break;
         // }
-        object? result = "";
         var indexResult = -1;
-        if (foundTypeColumn.TryGetValue(column, out result))
+        if (foundTypeColumn.TryGetValue(column, out object? result))
         {
             return result;
         }

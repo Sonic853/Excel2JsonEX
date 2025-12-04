@@ -45,15 +45,14 @@ class DataManager
     /// 保存Json
     /// </summary>
     /// <param name="filePath">保存路径</param>
-    public void saveJson(string filePath)
+    public void SaveJson(string filePath)
     {
         mJson?.SaveToFile(filePath, mEncoding!);
     }
 
-    public void saveCSharp(string filePath)
+    public void SaveCSharp(string filePath)
     {
-        if (mCSharp != null)
-            mCSharp.SaveToFile(filePath, mEncoding!);
+        mCSharp?.SaveToFile(filePath, mEncoding!);
     }
 
 
@@ -61,7 +60,7 @@ class DataManager
     /// 加载Excel文件
     /// </summary>
     /// <param name="options">导入设置</param>
-    public void loadExcel(Options options)
+    public void LoadExcel(Options options)
     {
         mOptions = options;
 

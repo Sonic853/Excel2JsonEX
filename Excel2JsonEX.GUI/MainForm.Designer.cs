@@ -174,7 +174,7 @@
             statusLabel.Size = new Size(178, 20);
             statusLabel.Text = "https://neil3d.github.io";
             statusLabel.TextAlign = ContentAlignment.MiddleLeft;
-            statusLabel.Click += statusLabel_Click;
+            statusLabel.Click += StatusLabel_Click;
             // 
             // toolStripStatusLabel1
             // 
@@ -185,7 +185,7 @@
             toolStripStatusLabel1.Spring = true;
             toolStripStatusLabel1.Text = "https://github.com/Sonic853/Excel2JsonEX";
             toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleRight;
-            toolStripStatusLabel1.Click += statusLabel1_Click;
+            toolStripStatusLabel1.Click += StatusLabel1_Click;
             // 
             // toolStrip
             // 
@@ -207,7 +207,7 @@
             btnImportExcel.Text = "Import Excel";
             btnImportExcel.TextImageRelation = TextImageRelation.ImageAboveText;
             btnImportExcel.ToolTipText = "Import Excel .xlsx file";
-            btnImportExcel.Click += btnImportExcel_Click;
+            btnImportExcel.Click += BtnImportExcel_Click;
             // 
             // toolStripSeparator1
             // 
@@ -223,7 +223,7 @@
             btnCopyJSON.Text = "Copy JSON";
             btnCopyJSON.TextImageRelation = TextImageRelation.ImageAboveText;
             btnCopyJSON.ToolTipText = "Copy JSON string to clipboard";
-            btnCopyJSON.Click += btnCopyJSON_Click;
+            btnCopyJSON.Click += BtnCopyJSON_Click;
             // 
             // btnSaveJson
             // 
@@ -234,7 +234,7 @@
             btnSaveJson.Text = "Save JSON";
             btnSaveJson.TextImageRelation = TextImageRelation.ImageAboveText;
             btnSaveJson.ToolTipText = "Save JSON file";
-            btnSaveJson.Click += btnSaveJson_Click;
+            btnSaveJson.Click += BtnSaveJson_Click;
             // 
             // btnCopyCSharp
             // 
@@ -245,7 +245,7 @@
             btnCopyCSharp.Text = "Copy C#";
             btnCopyCSharp.TextImageRelation = TextImageRelation.ImageAboveText;
             btnCopyCSharp.ToolTipText = "Save JSON file";
-            btnCopyCSharp.Click += btnCopyCSharp_Click;
+            btnCopyCSharp.Click += BtnCopyCSharp_Click;
             // 
             // btnSaveCSharp
             // 
@@ -256,7 +256,7 @@
             btnSaveCSharp.Text = "Save C#";
             btnSaveCSharp.TextImageRelation = TextImageRelation.ImageAboveText;
             btnSaveCSharp.ToolTipText = "Save JSON file";
-            btnSaveCSharp.Click += btnSaveCSharp_Click;
+            btnSaveCSharp.Click += BtnSaveCSharp_Click;
             // 
             // toolStripSeparator2
             // 
@@ -272,7 +272,7 @@
             btnHelp.Text = "Help";
             btnHelp.TextImageRelation = TextImageRelation.ImageAboveText;
             btnHelp.ToolTipText = "Help Document on web";
-            btnHelp.Click += btnHelp_Click;
+            btnHelp.Click += BtnHelp_Click;
             // 
             // splitContainer1
             // 
@@ -318,8 +318,8 @@
             panelExcelDropBox.Name = "panelExcelDropBox";
             panelExcelDropBox.Size = new Size(404, 215);
             panelExcelDropBox.TabIndex = 1;
-            panelExcelDropBox.DragDrop += panelExcelDropBox_DragDrop;
-            panelExcelDropBox.DragEnter += panelExcelDropBox_DragEnter;
+            panelExcelDropBox.DragDrop += PanelExcelDropBox_DragDrop;
+            panelExcelDropBox.DragEnter += PanelExcelDropBox_DragEnter;
             // 
             // flowLayoutPanel2
             // 
@@ -449,7 +449,7 @@
             btnReimport.TabIndex = 7;
             btnReimport.Text = "Reimport";
             btnReimport.UseVisualStyleBackColor = true;
-            btnReimport.Click += btnReimport_Click;
+            btnReimport.Click += BtnReimport_Click;
             // 
             // comboBoxLowcase
             // 
@@ -537,8 +537,8 @@
             // 
             // backgroundWorker
             // 
-            backgroundWorker.DoWork += backgroundWorker_DoWork;
-            backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
+            backgroundWorker.DoWork += BackgroundWorker_DoWork;
+            backgroundWorker.RunWorkerCompleted += BackgroundWorker_RunWorkerCompleted;
             // 
             // MainForm
             // 

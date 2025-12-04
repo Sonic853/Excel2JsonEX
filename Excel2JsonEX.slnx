@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Excel2JsonEX.CMD/Excel2JsonEX.CMD.csproj" />
+  <Project Path="Excel2JsonEX.GUI/Excel2JsonEX.GUI.csproj" />
+  <Project Path="Excel2JsonEX/Excel2JsonEX.csproj" />
+</Solution>

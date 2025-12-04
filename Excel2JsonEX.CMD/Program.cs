@@ -109,5 +109,7 @@ parser.ParseArguments<Options>(args)
 .WithNotParsed(errors =>
 {
     // 处理解析错误
+    Console.WriteLine("Error parsing command line arguments.");
+    Console.WriteLine(string.Join(Environment.NewLine, errors.Select(e => e.ToString())));
     Environment.Exit(-1);
 });

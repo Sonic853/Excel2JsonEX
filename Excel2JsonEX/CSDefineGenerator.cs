@@ -41,7 +41,7 @@ public class CSDefineGenerator
         for (var i = 0; i < excel.Sheets.Count; i++)
         {
             var sheet = excel.Sheets[i];
-            sb.Append(_exportSheet(sheet, options));
+            sb.Append(ExportSheet(sheet, options));
         }
 
         sb.AppendLine("// End of Auto Generated Code");
@@ -49,7 +49,7 @@ public class CSDefineGenerator
         mCode = sb.ToString();
     }
 
-    private string _exportSheet(DataTable sheet, Options options)
+    private static string ExportSheet(DataTable sheet, Options options)
     {
         if (sheet.Columns.Count < 0 || sheet.Rows.Count < 2)
             return "";

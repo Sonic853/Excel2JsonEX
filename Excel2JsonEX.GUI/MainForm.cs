@@ -42,12 +42,12 @@ namespace Excel2JsonEX.GUI
                 HighlightingManager.Manager.AddSyntaxModeFileProvider(fsmProvider);
             }
             //-- syntax highlight text box
-            mJsonTextBox = createTextBoxInTab(tabPageJSON);
+            mJsonTextBox = CreateTextBoxInTab(tabPageJSON);
             mJsonTextBox.SetFoldingStrategy("JSON");
             mJsonTextBox.SetHighlighting("JSON");
             // mJsonTextBox.TextChanged += jsonTextChanged;
 
-            mCSharpTextBox = createTextBoxInTab(tabCSharp);
+            mCSharpTextBox = CreateTextBoxInTab(tabCSharp);
             mCSharpTextBox.SetFoldingStrategy("C#");
             mCSharpTextBox.SetHighlighting("C#");
 
@@ -75,7 +75,7 @@ namespace Excel2JsonEX.GUI
                 btnCopyCSharp,
                 btnSaveCSharp,
             ];
-            enableExportButtons(false);
+            EnableExportButtons(false);
 
             //-- data manager
             mDataMgr = new();
@@ -86,7 +86,7 @@ namespace Excel2JsonEX.GUI
         /// 设置导出相关的按钮是否可用
         /// </summary>
         /// <param name="enable">是否可用</param>
-        private void enableExportButtons(bool enable)
+        private void EnableExportButtons(bool enable)
         {
             foreach (var btn in mExportButtonList)
                 btn.Enabled = enable;
@@ -97,7 +97,7 @@ namespace Excel2JsonEX.GUI
         /// </summary>
         /// <param name="tab">TabPage容器控件</param>
         /// <returns>新建的Text Box控件</returns>
-        private TextEditorControlEx createTextBoxInTab(TabPage tab)
+        private static TextEditorControlEx CreateTextBoxInTab(TabPage tab)
         {
             var textBox = new TextEditorControlEx()
             {
@@ -112,16 +112,16 @@ namespace Excel2JsonEX.GUI
         /// 使用BackgroundWorker加载Excel文件，使用UI中的Options设置
         /// </summary>
         /// <param name="path">Excel文件路径</param>
-        private void loadExcelAsync(string path)
+        private void LoadExcelAsync(string path)
         {
 
             mCurrentXlsx = path;
-            FileName = System.IO.Path.GetFileNameWithoutExtension(path);
+            FileName = Path.GetFileNameWithoutExtension(path);
 
             //-- update ui
             btnReimport.Enabled = true;
             labelExcelFile.Text = path;
-            enableExportButtons(false);
+            EnableExportButtons(false);
 
             statusLabel.IsLink = false;
             statusLabel.Text = "Loading Excel ...";
@@ -148,20 +148,20 @@ namespace Excel2JsonEX.GUI
         /// <summary>
         /// 接受Excel拖放事件
         /// </summary>
-        private void panelExcelDropBox_DragDrop(object sender, DragEventArgs e)
+        private void PanelExcelDropBox_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data == null) { return; }
             var dropData = (string[]?)e.Data.GetData(DataFormats.FileDrop, false);
             if (dropData != null)
             {
-                loadExcelAsync(dropData[0]);
+                LoadExcelAsync(dropData[0]);
             }
         }
 
         /// <summary>
         /// 显示Help文档
         /// </summary>
-        private void btnHelp_Click(object sender, EventArgs e)
+        private void BtnHelp_Click(object sender, EventArgs e)
         {
             Process.Start(new ProcessStartInfo("https://neil3d.github.io/coding/excel2json.html") { UseShellExecute = true });
         }
@@ -169,7 +169,7 @@ namespace Excel2JsonEX.GUI
         /// <summary>
         /// 判断拖放对象是否是一个.xlsx文件
         /// </summary>
-        private void panelExcelDropBox_DragEnter(object sender, DragEventArgs e)
+        private void PanelExcelDropBox_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data == null) { return; }
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -194,25 +194,25 @@ namespace Excel2JsonEX.GUI
         /// <summary>
         /// 执行实际的Excel加载
         /// </summary>
-        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        private void BackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             if (e.Argument == null) { return; }
             lock (mDataMgr)
             {
-                mDataMgr.loadExcel((Options)e.Argument);
+                mDataMgr.LoadExcel((Options)e.Argument);
             }
         }
 
         /// <summary>
         /// Excel加载完成
         /// </summary>
-        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void BackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
 
             // 判断错误信息
             if (e.Error != null)
             {
-                showStatus(e.Error.Message, Color.Red);
+                ShowStatus(e.Error.Message, Color.Red);
                 return;
             }
 
@@ -225,14 +225,14 @@ namespace Excel2JsonEX.GUI
                 mJsonTextBox.Text = mDataMgr.JsonContext;
                 mCSharpTextBox.Text = mDataMgr.CSharpCode;
 
-                enableExportButtons(true);
+                EnableExportButtons(true);
             }
         }
 
         /// <summary>
         /// 工具栏按钮：Import Excel
         /// </summary>
-        private void btnImportExcel_Click(object sender, EventArgs e)
+        private void BtnImportExcel_Click(object sender, EventArgs e)
         {
             var dlg = new OpenFileDialog
             {
@@ -241,14 +241,14 @@ namespace Excel2JsonEX.GUI
             };
             if (dlg.ShowDialog() == DialogResult.OK)
             {
-                loadExcelAsync(dlg.FileName);
+                LoadExcelAsync(dlg.FileName);
             }
         }
 
         /// <summary>
         /// 点击状态栏链接
         /// </summary>
-        private void statusLabel_Click(object sender, EventArgs e)
+        private void StatusLabel_Click(object sender, EventArgs e)
         {
             if (statusLabel.IsLink)
             {
@@ -258,7 +258,7 @@ namespace Excel2JsonEX.GUI
         /// <summary>
         /// 点击状态栏链接
         /// </summary>
-        private void statusLabel1_Click(object sender, EventArgs e)
+        private void StatusLabel1_Click(object sender, EventArgs e)
         {
             if (toolStripStatusLabel1.IsLink)
             {
@@ -269,7 +269,7 @@ namespace Excel2JsonEX.GUI
         /// <summary>
         /// 保存导出文件
         /// </summary>
-        private void saveToFile(int type, string filter)
+        private void SaveToFile(int type, string filter)
         {
 
             try
@@ -287,39 +287,39 @@ namespace Excel2JsonEX.GUI
                         switch (type)
                         {
                             case 1:
-                                mDataMgr.saveJson(dlg.FileName);
+                                mDataMgr.SaveJson(dlg.FileName);
                                 break;
                             case 2:
-                                mDataMgr.saveCSharp(dlg.FileName);
+                                mDataMgr.SaveCSharp(dlg.FileName);
                                 break;
                         }
                     }
-                    showStatus($"{dlg.FileName} saved!", Color.Black);
+                    ShowStatus($"{dlg.FileName} saved!", Color.Black);
                 }// end of if
             }
             catch (Exception ex)
             {
-                showStatus(ex.Message, Color.Red);
+                ShowStatus(ex.Message, Color.Red);
             }
         }
 
         /// <summary>
         /// 工具栏按钮：Save Json
         /// </summary>
-        private void btnSaveJson_Click(object sender, EventArgs e)
+        private void BtnSaveJson_Click(object sender, EventArgs e)
         {
-            saveToFile(1, "Json File(*.json)|*.json");
+            SaveToFile(1, "Json File(*.json)|*.json");
         }
 
         /// <summary>
         /// 工具栏按钮：Copy Json
         /// </summary>
-        private void btnCopyJSON_Click(object sender, EventArgs e)
+        private void BtnCopyJSON_Click(object sender, EventArgs e)
         {
             lock (mDataMgr)
             {
                 Clipboard.SetText(mDataMgr.JsonContext);
-                showStatus("Json text copyed to clipboard.", Color.Black);
+                ShowStatus("Json text copyed to clipboard.", Color.Black);
             }
         }
 
@@ -328,7 +328,7 @@ namespace Excel2JsonEX.GUI
         /// </summary>
         /// <param name="szMessage">信息文字</param>
         /// <param name="color">信息颜色</param>
-        private void showStatus(string szMessage, Color color)
+        private void ShowStatus(string szMessage, Color color)
         {
             statusLabel.Text = szMessage;
             statusLabel.ForeColor = color;
@@ -338,26 +338,26 @@ namespace Excel2JsonEX.GUI
         /// <summary>
         /// 配置项变更之后，手动重新导入xlsx文件
         /// </summary>
-        private void btnReimport_Click(object sender, EventArgs e)
+        private void BtnReimport_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(mCurrentXlsx))
             {
-                loadExcelAsync(mCurrentXlsx);
+                LoadExcelAsync(mCurrentXlsx);
             }
         }
 
-        private void btnCopyCSharp_Click(object sender, EventArgs e)
+        private void BtnCopyCSharp_Click(object sender, EventArgs e)
         {
             lock (mDataMgr)
             {
                 Clipboard.SetText(mDataMgr.CSharpCode);
-                showStatus("C# code copyed to clipboard.", Color.Black);
+                ShowStatus("C# code copyed to clipboard.", Color.Black);
             }
         }
 
-        private void btnSaveCSharp_Click(object sender, EventArgs e)
+        private void BtnSaveCSharp_Click(object sender, EventArgs e)
         {
-            saveToFile(2, "C# code file(*.cs)|*.cs");
+            SaveToFile(2, "C# code file(*.cs)|*.cs");
         }
     }
 }

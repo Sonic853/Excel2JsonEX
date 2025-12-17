@@ -51,7 +51,7 @@ public class CSDefineGenerator
 
     private static string ExportSheet(DataTable sheet, Options options)
     {
-        if (sheet.Columns.Count < 0 || sheet.Rows.Count < 2)
+        if (sheet.Columns.Count < 0 || sheet.Rows.Count < 1)
             return "";
 
         var sheetName = sheet.TableName;

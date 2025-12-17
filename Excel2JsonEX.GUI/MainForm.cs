@@ -178,8 +178,8 @@ namespace Excel2JsonEX.GUI
                 if (dropData != null && dropData.Length > 0)
                 {
                     var szPath = dropData[0];
-                    var szExt = System.IO.Path.GetExtension(szPath);
-                    FileName = System.IO.Path.GetFileNameWithoutExtension(szPath);
+                    var szExt = Path.GetExtension(szPath);
+                    FileName = Path.GetFileNameWithoutExtension(szPath);
                     szExt = szExt.ToLower();
                     if (szExt == ".xlsx")
                     {
@@ -252,7 +252,7 @@ namespace Excel2JsonEX.GUI
         {
             if (statusLabel.IsLink)
             {
-                System.Diagnostics.Process.Start("explorer.exe", statusLabel.Text!);
+                Process.Start("explorer.exe", statusLabel.Text!);
             }
         }
         /// <summary>
@@ -262,7 +262,7 @@ namespace Excel2JsonEX.GUI
         {
             if (toolStripStatusLabel1.IsLink)
             {
-                System.Diagnostics.Process.Start("explorer.exe", toolStripStatusLabel1.Text!);
+                Process.Start("explorer.exe", toolStripStatusLabel1.Text!);
             }
         }
 

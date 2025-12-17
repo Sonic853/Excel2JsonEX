@@ -63,8 +63,10 @@ public class CSDefineGenerator
         var typeRow = sheet.Rows[0];
         var commentRow = sheet.Rows[1];
 
-        foreach (DataColumn column in sheet.Columns)
+        // foreach (DataColumn column in sheet.Columns)
+        for (var i = 0; i < sheet.Columns.Count; i++)
         {
+            var column = sheet.Columns[i];
             // 过滤掉包含指定前缀的列
             var columnName = column.ToString();
             if (options.ExcludePrefix.Length > 0 && columnName.StartsWith(options.ExcludePrefix))
@@ -72,7 +74,16 @@ public class CSDefineGenerator
 
             FieldDef field;
             field.name = column.ToString();
-            field.type = typeRow[column].ToString() ?? string.Empty;
+            if (options.HeaderRows > 1)
+            {
+                field.type = typeRow[column].ToString() ?? string.Empty;
+            }
+            else
+            {
+                GetColumnType(sheet, column, options.HeaderRows, out var t);
+                if (t == null || !primitiveTypes.TryGetValue(t, out var type)) type = "string";
+                field.type = i == 0 && field.name == "id" && (type == "double" || type == "string") ? "int" : type;
+            }
             field.comment = commentRow[column].ToString() ?? string.Empty;
 
             fieldList.Add(field);
@@ -98,6 +109,55 @@ public class CSDefineGenerator
         sb.AppendLine();
         return sb.ToString();
     }
+
+    protected static bool GetColumnType(DataTable sheet, DataColumn column, int firstDataRow, out Type? result)
+    {
+        Type? _result = null;
+        Parallel.For(firstDataRow, sheet.Rows.Count, i =>
+        {
+            object value = sheet.Rows[i][column];
+            var valueType = value.GetType();
+            if (valueType == typeof(DBNull)) { return; }
+            if (valueType.IsValueType && _result == null)
+            {
+                _result = valueType;
+            }
+        });
+        result = _result;
+        return result != null;
+    }
+
+    static readonly Dictionary<Type, string> primitiveTypes = new()
+    {
+        { typeof(string), "string" },
+        { typeof(bool), "bool" },
+        { typeof(int), "int" },
+        { typeof(long), "long" },
+        { typeof(float), "float" },
+        { typeof(double), "double" },
+        { typeof(byte), "byte" },
+        { typeof(sbyte), "sbyte" },
+        { typeof(char), "char" },
+        { typeof(decimal), "decimal" },
+        { typeof(short), "short" },
+        { typeof(uint), "uint" },
+        { typeof(ulong), "ulong" },
+        { typeof(ushort), "ushort" },
+        { typeof(string[]), "string[]" },
+        { typeof(bool[]), "bool[]" },
+        { typeof(int[]), "int[]" },
+        { typeof(long[]), "long[]" },
+        { typeof(float[]), "float[]" },
+        { typeof(double[]), "double[]" },
+        { typeof(byte[]), "byte[]" },
+        { typeof(sbyte[]), "sbyte[]" },
+        { typeof(char[]), "char[]" },
+        { typeof(decimal[]), "decimal[]" },
+        { typeof(short[]), "short[]" },
+        { typeof(uint[]), "uint[]" },
+        { typeof(ulong[]), "ulong[]" },
+        { typeof(ushort[]), "ushort[]" },
+    };
 
     public void SaveToFile(string filePath, Encoding encoding)
     {

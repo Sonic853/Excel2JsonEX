@@ -468,7 +468,7 @@
             // 
             comboBoxHeader.DisplayMember = "0";
             comboBoxHeader.FormattingEnabled = true;
-            comboBoxHeader.Items.AddRange(new object[] { "2", "3", "4", "5", "6" });
+            comboBoxHeader.Items.AddRange(new object[] { "1", "2", "3", "4", "5", "6" });
             comboBoxHeader.Location = new Point(171, 168);
             comboBoxHeader.Margin = new Padding(4, 5, 4, 5);
             comboBoxHeader.Name = "comboBoxHeader";

@@ -125,18 +125,6 @@ public class JsonExporter
         var importData = new Dictionary<string, object>();
 
         var firstDataRow = mHeaderRows;
-        // for (var i = firstDataRow; i < sheet.Rows.Count; i++)
-        // {
-        //     DataRow row = sheet.Rows[i];
-        //     var ID = row[sheet.Columns[0]].ToString();
-        //     if (string.IsNullOrEmpty(ID))
-        //         ID = $"row_{i}";
-
-        //     var rowObject = convertRowToDict(sheet, row, options);
-        //     // 多余的字段
-        //     // rowObject[ID] = ID;
-        //     importData[ID] = rowObject;
-        // }
         var foundTypeColumn = new ConcurrentDictionary<DataColumn, object?>();
         Parallel.For(firstDataRow, sheet.Rows.Count, i =>
         {
@@ -283,12 +271,40 @@ public class JsonExporter
             case "double":
                 isSet = true;
                 return default(double);
+            case "byte":
+                isSet = true;
+                return default(byte);
+            case "sbyte":
+                isSet = true;
+                return default(sbyte);
+            case "char":
+                isSet = true;
+                return default(char);
+            case "decimal":
+                isSet = true;
+                return default(decimal);
+            case "short":
+                isSet = true;
+                return default(short);
+            case "uint":
+                isSet = true;
+                return default(uint);
+            case "ulong":
+                isSet = true;
+                return default(ulong);
+            case "ushort":
+                isSet = true;
+                return default(ushort);
             case "string[]":
                 isSet = true;
                 return default(string[]);
             case "int[]":
                 isSet = true;
                 return default(int[]);
+            case "boolean[]":
+            case "bool[]":
+                isSet = true;
+                return default(bool[]);
             case "long[]":
                 isSet = true;
                 return default(long[]);
@@ -298,6 +314,30 @@ public class JsonExporter
             case "double[]":
                 isSet = true;
                 return default(double[]);
+            case "byte[]":
+                isSet = true;
+                return default(byte[]);
+            case "sbyte[]":
+                isSet = true;
+                return default(sbyte[]);
+            case "char[]":
+                isSet = true;
+                return default(char[]);
+            case "decimal[]":
+                isSet = true;
+                return default(decimal[]);
+            case "short[]":
+                isSet = true;
+                return default(short[]);
+            case "uint[]":
+                isSet = true;
+                return default(uint[]);
+            case "ulong[]":
+                isSet = true;
+                return default(ulong[]);
+            case "ushort[]":
+                isSet = true;
+                return default(ushort[]);
             default:
                 isSet = false;
                 return null;
@@ -328,15 +368,6 @@ public class JsonExporter
     /// </summary>
     private static object? GetColumnDefault(DataTable sheet, DataColumn column, int firstDataRow, ref ConcurrentDictionary<DataColumn, object?> foundTypeColumn)
     {
-        // for (var i = firstDataRow; i < sheet.Rows.Count; i++)
-        // {
-        //     object value = sheet.Rows[i][column];
-        //     var valueType = value.GetType();
-        //     if (valueType == typeof(DBNull)) { continue; }
-        //     if (valueType.IsValueType)
-        //         return Activator.CreateInstance(valueType);
-        //     break;
-        // }
         var indexResult = -1;
         if (foundTypeColumn.TryGetValue(column, out object? result))
         {

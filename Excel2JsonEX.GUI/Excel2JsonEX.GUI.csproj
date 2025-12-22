@@ -22,15 +22,12 @@
 		<Content Include="Resources\json.png" />
 		<None Include="Resources\about.png" />
 	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="ICSharpCode.TextEditorEx" Version="1.4.0" />
+	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Excel2JsonEX\Excel2JsonEX.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="ICSharpCode.TextEditorEx">
-      <HintPath>..\ICSharpCode.TextEditorEx.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>

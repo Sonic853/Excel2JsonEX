@@ -11,9 +11,9 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="MiniExcel" Version="1.44.1" />
+    <PackageReference Include="MiniExcel" Version="1.45.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.10" />
   </ItemGroup>
 
 </Project>

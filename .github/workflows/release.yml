@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  # Single deploy job since we're just deploying
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Bump version
+        id: read_version
+        run: |
+          git fetch --prune --unshallow
+          last_tag=$(git describe --tags --abbrev=0 HEAD~|| echo "0.0.0")
+          echo "Latest Tag: $last_tag"
+          echo "last_tag=$last_tag" >> $GITHUB_OUTPUT
+
+      - name: Get Project Version
+        id: get_version
+        uses: Raycynix/get-csproj-version-action@v1
+        with:
+          path: './Excel2JsonEX.CMD/Excel2JsonEX.CMD.csproj'
+
+      - name: Setup dotnet
+        if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.x'
+
+      - name: Build excel2json
+        if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version
+        run: dotnet publish ./Excel2JsonEX.CMD/Excel2JsonEX.CMD.csproj -c Release -o ./Excel2JsonEX/output /p:PublishSingleFile=true /p:RuntimeIdentifier=win-x64 /p:SelfContained=false
+
+      - name: Build Excel2JsonEX.GUI
+        if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version
+        run: dotnet publish ./Excel2JsonEX.GUI/Excel2JsonEX.GUI.csproj -c Release -o ./Excel2JsonEX/output /p:PublishSingleFile=true /p:RuntimeIdentifier=win-x64 /p:SelfContained=false
+
+      - name: Zip excel2json.exe and Excel2JsonEX.GUI.exe
+        if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version
+        working-directory: ./Excel2JsonEX/output
+        run: zip -r Excel2JsonEX_${{ steps.get_version.outputs.version }}.zip excel2json.exe Excel2JsonEX.GUI.exe
+
+      - name: Release
+        if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version
+        uses: softprops/action-gh-release@v3
+        with:
+          body: |
+            ### **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.read_version.outputs.last_tag }}...${{ steps.get_version.outputs.version }}
+          tag_name: ${{ steps.get_version.outputs.version }}
+          files: |
+            ./Excel2JsonEX/output/Excel2JsonEX_${{ steps.get_version.outputs.version }}.zip
+
+      

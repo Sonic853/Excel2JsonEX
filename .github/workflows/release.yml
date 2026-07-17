@@ -41,11 +41,11 @@ jobs:
 
       - name: Build excel2json
         if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version
-        run: dotnet publish ./Excel2JsonEX.CMD/Excel2JsonEX.CMD.csproj -c Release -o ./Excel2JsonEX/output /p:PublishSingleFile=true /p:RuntimeIdentifier=win-x64 /p:SelfContained=false
+        run: dotnet publish ./Excel2JsonEX.CMD/Excel2JsonEX.CMD.csproj -c Release -o ./Excel2JsonEX/output /p:PublishSingleFile=true /p:RuntimeIdentifier=win-x64 /p:SelfContained=false /p:EnableWindowsTargeting=true
 
       - name: Build Excel2JsonEX.GUI
         if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version
-        run: dotnet publish ./Excel2JsonEX.GUI/Excel2JsonEX.GUI.csproj -c Release -o ./Excel2JsonEX/output /p:PublishSingleFile=true /p:RuntimeIdentifier=win-x64 /p:SelfContained=false
+        run: dotnet publish ./Excel2JsonEX.GUI/Excel2JsonEX.GUI.csproj -c Release -o ./Excel2JsonEX/output /p:PublishSingleFile=true /p:RuntimeIdentifier=win-x64 /p:SelfContained=false /p:EnableWindowsTargeting=true
 
       - name: Zip excel2json.exe and Excel2JsonEX.GUI.exe
         if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version

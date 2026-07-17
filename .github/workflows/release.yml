@@ -31,7 +31,7 @@ jobs:
         id: get_version
         uses: Raycynix/get-csproj-version-action@v1
         with:
-          path: './Excel2JsonEX.CMD/Excel2JsonEX.CMD.csproj'
+          path: './Directory.Build.props'
 
       - name: Setup dotnet
         if: steps.read_version.outputs.last_tag != steps.get_version.outputs.version

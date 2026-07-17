@@ -6,7 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Company>Sonic853</Company>
-    <AssemblyVersion>1.0.8</AssemblyVersion>
     <LangVersion>latest</LangVersion>
     <AssemblyName>excel2json</AssemblyName>
   </PropertyGroup>
